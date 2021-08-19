@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    command: npm run dev
+    depends_on:
+      - elasticsearch
+    environment: 
+      ELASTICSEARCH_URL: "http://elasticsearch:9200"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ".:/usr/src/app"
+      - /usr/src/app/node_modules
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+    environment:
+      discovery.type: "single-node"
+    ports:
+      - "9300:9300"
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.4.0
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+    ports:
+      - "5601:5601"

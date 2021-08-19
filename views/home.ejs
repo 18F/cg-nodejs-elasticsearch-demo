@@ -1,0 +1,38 @@
+<%- include('_header', {title: "Search the Constitution"}) %>
+<h1>Search the Constitution</h1>
+<p>
+  This is a proof-of-concept for deploying Elasticsearch into cloud.gov and
+  connecting to it using Node.js.
+  <br />
+  Use the form below to search the United States constitution.
+</p>
+<form class="usa-search usa-search--big" method="get" action="/">
+  <input class="usa-input" type="search" name="q"
+  placeholder="e.g.,&nbsp;&quot;congress&quot;"" value="<%= query %>" autofocus
+  />
+  <button class="usa-button" type="submit">Search</button>
+</form>
+
+<% if (results && results.length) { %>
+<ul class="usa-collection">
+  <% results.forEach((doc) => { %>
+  <li class="usa-collection__item">
+    <div class="usa-collection__body">
+      <div class="usa-collection__heading">
+        <h2 class="usa-collection__heading">
+          <a href="<%= doc.url %>"><%= doc.title %></a>
+          <small>(score: <%= doc.score %>)</small>
+        </h2>
+      </div>
+      <div class="usa-collection__description">
+        <% doc.highlight.forEach(h => { %>
+        <div class="margin-bottom-1"><%- h %></div>
+        <% }) %>
+      </div>
+    </div>
+  </li>
+  <% }) %>
+</ul>
+<% } else if (results.length === 0) { %>
+<p>No results found.</p>
+<% } %> <%- include('_footer') %>
