@@ -1,6 +1,6 @@
 ---
 applications:
-- name: cg-elastic-demo
+- name: cg-nodejs-elastic-demo
   command: npm start
   services:
     - my-elastic-service

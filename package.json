@@ -1,7 +1,13 @@
 {
-  "name": "cg-elastic",
+  "private": true,
+  "name": "cg-nodejs-elasticsearch-demo",
   "version": "1.0.0",
   "description": "",
+  "author": {
+    "name": "Matt Hinz",
+    "email": "matt.hinz@gsa.gov"
+  },
+  "license": "CC0-1.0",
   "scripts": {
     "dev": "npm install && nodemon --ext ejs,js,json index.js",
     "start": "node index.js"
