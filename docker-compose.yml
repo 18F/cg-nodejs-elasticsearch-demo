@@ -4,7 +4,7 @@ services:
     command: npm run dev
     depends_on:
       - elasticsearch
-    environment: 
+    environment:
       ELASTICSEARCH_URL: "http://elasticsearch:9200"
     ports:
       - "3000:3000"
