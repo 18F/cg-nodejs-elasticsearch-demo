@@ -1,7 +1,7 @@
 // @ts-check
 
 const { createExpressApp } = require("./app");
-const { initIndex } = require("./seed");
+const { initIndex } = require("./init");
 
 const PORT = process.env.PORT || 3000;
 const INDEX = process.env.ELASTICSEARCH_INDEX || "us-constitution";

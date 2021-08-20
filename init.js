@@ -6,13 +6,24 @@ const fs = require("fs").promises;
 const { createElasticSearchClient } = require("./elasticsearch");
 
 const DOCUMENTS_DIR = path.join(__dirname, "documents");
+const MAX_TRIES = 20;
 
 async function initIndex(indexName) {
   const client = createElasticSearchClient();
 
-  await client.indices.delete({
-    index: indexName,
-  });
+  try {
+    await client.indices.delete({
+      index: indexName,
+    });
+  } catch (err) {
+    const indexNotFound =
+      err.name === "ResponseError" &&
+      err.meta.body.error.type === "index_not_found_exception";
+
+    if (!indexNotFound) {
+      throw err;
+    }
+  }
 
   await client.indices.create({
     index: indexName,
@@ -42,8 +53,10 @@ async function initIndex(indexName) {
     },
   });
 
-  await seedIndex(indexName);
+  return await seedIndex(indexName);
 }
+
+module.exports.initIndex = makeRetryable(MAX_TRIES, initIndex);
 
 /**
  * @param {string} indexName Elasticsearch index to use.
@@ -95,26 +108,33 @@ async function getJsonDocuments() {
  * @param {object} body
  */
 async function indexDocument(client, indexName, id, body) {
-  let attempts = 4;
-
-  while (attempts > 0) {
-    attempts--;
-    try {
-      await client.index({ id, body, index: indexName });
-    } catch (err) {
-      if (err.code === "ECONNREFUSED" && attempts > 0) {
-        console.error("Connection refused, retrying in a bit...");
-        // Server's not awake yet
-        await delay(3000);
-      } else {
-        throw err;
-      }
-    }
-  }
+  await client.index({ id, body, index: indexName });
 }
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-module.exports = { initIndex, seedIndex };
+function makeRetryable(times, func) {
+  return async (...args) => {
+    for (let attempt = 0; attempt < times; attempt++) {
+      const isLastAttempt = attempt === times - 1;
+      try {
+        return await func.apply(this, args);
+      } catch (err) {
+        if (isLastAttempt) {
+          throw err;
+        }
+
+        const isConnectionError =
+          err.code === "ECONNREFUSED" || err.name === "ConnectionError";
+
+        if (!isConnectionError) {
+          throw err;
+        }
+
+        await delay(1000);
+      }
+    }
+  };
+}
