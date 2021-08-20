@@ -7,6 +7,44 @@ const { createElasticSearchClient } = require("./elasticsearch");
 
 const DOCUMENTS_DIR = path.join(__dirname, "documents");
 
+async function initIndex(indexName) {
+  const client = createElasticSearchClient();
+
+  await client.indices.delete({
+    index: indexName,
+  });
+
+  await client.indices.create({
+    index: indexName,
+  });
+  console.log("Created index %s...", indexName);
+
+  await client.indices.putMapping({
+    index: indexName,
+    body: {
+      properties: {
+        type: {
+          type: "keyword",
+        },
+        number: {
+          type: "integer",
+        },
+        title: {
+          type: "text",
+        },
+        "sections.title": {
+          type: "text",
+        },
+        "sections.body": {
+          type: "text",
+        },
+      },
+    },
+  });
+
+  await seedIndex(indexName);
+}
+
 /**
  * @param {string} indexName Elasticsearch index to use.
  * @returns {Promise<string[]>} Set of document ids indexed.
@@ -79,4 +117,4 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-module.exports = { seedIndex };
+module.exports = { initIndex, seedIndex };

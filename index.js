@@ -1,22 +1,18 @@
 // @ts-check
 
 const { createExpressApp } = require("./app");
-const { seedIndex } = require("./seed");
+const { initIndex } = require("./seed");
 
-run().catch((err) => {
+const PORT = process.env.PORT || 3000;
+const INDEX = process.env.ELASTICSEARCH_INDEX || "us-constitution";
+
+initIndex(INDEX).catch((err) => {
   console.error(err);
-  process.exitCode = 1;
+  process.exit(1);
 });
 
-async function run() {
-  const PORT = process.env.PORT || 3000;
-  const INDEX = process.env.ELASTICSEARCH_INDEX || "my-index";
+const app = createExpressApp(INDEX);
 
-  const documentIds = await seedIndex(INDEX);
-  console.log("Indexed %d document(s)", documentIds.length);
-
-  const app = createExpressApp(INDEX);
-  app.listen(PORT, () => {
-    console.log(`Listening on ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Listening on ${PORT}`);
+});
