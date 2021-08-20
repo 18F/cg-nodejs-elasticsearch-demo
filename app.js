@@ -44,7 +44,7 @@ function createExpressApp(indexName) {
       const document = await getDocument(
         indexName,
         req.params.type,
-        req.params.number
+        req.params.number ? parseInt(req.params.number, 10) : undefined
       );
       if (!document) {
         res.sendStatus(404);
